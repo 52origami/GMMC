@@ -54,62 +54,49 @@
 
     let sessionID = null;
     let participantName = "";
-    let timeInSeconds = 75 * 60;
+    let timeInSeconds = 5; // Set your test duration here (e.g., set to 5 for a quick test!)
     let tabSwitchCount = 0;
     let currentAnswers = {};
 
     // Put your full 25 questions back in here!
     const examQuestions = [
         `Compute \\((2^0+2^6)+(2+0^{26})\\).<br><br>A) 6 &nbsp;&nbsp; B) 7 &nbsp;&nbsp; C) 66 &nbsp;&nbsp; D) 67 &nbsp;&nbsp; E) 77`,
-        
         `Mark has 10 colors of socks, and 4 of each color. Suppose he draws socks randomly out of his drawer; how many must he draw to guarantee at least two distinct pairs of matching socks (where a pair consists of two socks of the same color)?<br><br>A) 11 &nbsp;&nbsp; B) 12 &nbsp;&nbsp; C) 13 &nbsp;&nbsp; D) 21 &nbsp;&nbsp; E) 31`,
-        
         `A 4-digit integer \\(n\\) satisfies the following: the hundreds and units digits are equal, and the product of its digits is 48. Compute the sum of the digits of the minimum possible value of \\(n\\).<br><br>A) 10 &nbsp;&nbsp; B) 11 &nbsp;&nbsp; C) 12 &nbsp;&nbsp; D) 13 &nbsp;&nbsp; E) 16`,
-        
         `What is the product of the digits of the smallest perfect square greater than 2026?<br><br>A) 6 &nbsp;&nbsp; B) 8 &nbsp;&nbsp; C) 12 &nbsp;&nbsp; D) 16 &nbsp;&nbsp; E) 24`,
-        
         `In quadrilateral \\(ABCD\\), \\(\\angle CBD = \\angle CAD = 50^\\circ\\) and \\(\\angle ABD = 75^\\circ\\). Determine the degree measure of \\(\\angle ADC\\). [See PDF for diagram]<br><br>A) 15 &nbsp;&nbsp; B) 25 &nbsp;&nbsp; C) 35 &nbsp;&nbsp; D) 45 &nbsp;&nbsp; E) 55`,
-        
         `A positive integer \\(n\\) leaves a remainder of \\(k-1\\) when divided by each of \\(k = 1,2,3,4,5,6\\). Let \\(m\\) be the 4th smallest possible value of \\(n\\); compute \\(6m\\).<br><br>A) 1234 &nbsp;&nbsp; B) 1434 &nbsp;&nbsp; C) 1673 &nbsp;&nbsp; D) 2874`,
-        
         `In triangle \\(ABC\\), \\(AB = 3\\), \\(BC = 4\\), and \\(\\angle B = 90^\\circ\\). Angle bisector \\(BE\\) intersects \\(AC\\) at \\(E\\). Circle \\(\\omega\\) has center \\(E\\) and is tangent to \\(AB\\) and \\(BC\\). Compute the radius of \\(\\omega\\). [See PDF for diagram]<br><br>A) 3/2 &nbsp;&nbsp; B) 2 &nbsp;&nbsp; C) 5/3 &nbsp;&nbsp; D) 12/5 &nbsp;&nbsp; E) 12/7`,
-        
         `A standard six-sided die is rolled 3 times, and the results are multiplied. Given the product was even, what is the probability that at least one 2 was rolled?<br><br>A) 1/3 &nbsp;&nbsp; B) 11/27 &nbsp;&nbsp; C) 4/9 &nbsp;&nbsp; D) 13/27 &nbsp;&nbsp; E) 5/9`,
-        
         `Let \\(f(x)\\) be a function defined for all non-zero real numbers \\(x\\) such that \\(2f(x) - f\\left(\\frac{1}{x}\\right) = 3x + 2\\). For \\(x > 0\\), the minimum possible value of \\(f(x)\\) can be expressed as \\(a + \\sqrt{b}\\), where \\(a\\) and \\(b\\) are positive integers. Determine \\(a+b\\).<br><br>A) 2 &nbsp;&nbsp; B) 3 &nbsp;&nbsp; C) 5 &nbsp;&nbsp; D) 6 &nbsp;&nbsp; E) 10`,
-        
         `Bob walks in a circle of radius 8 meters around the center of a circular lawn of radius \\(r\\), causing all grass within 2 meters of him to wither and die. If 25% of the lawn dies, compute the sum of all possible values of \\(r^2\\).<br><br>A) 64 &nbsp;&nbsp; B) 256 &nbsp;&nbsp; C) 304 &nbsp;&nbsp; D) 320 &nbsp;&nbsp; E) 368`,
-        
         `Let \\(x\\) and \\(y\\) be real numbers satisfying the system of equations \\(x+y=(xy)^2\\) and \\(x^2+y^2=12\\). Determine the sum of the digits of the maximum possible value of \\(x+y\\).<br><br>A) 2 &nbsp;&nbsp; B) 4 &nbsp;&nbsp; C) 6 &nbsp;&nbsp; D) 8 &nbsp;&nbsp; E) 12`,
-        
         `A 3-4-5 triangle is completely contained within another triangle. The two triangles are similar, and the perpendicular distance between corresponding parallel sides is 2. Compute the area of the region between the two triangles.<br><br>A) 18 &nbsp;&nbsp; B) 24 &nbsp;&nbsp; C) 42 &nbsp;&nbsp; D) 48 &nbsp;&nbsp; E) 54`,
-        
         `Let \\(x\\) and \\(y\\) be two positive integers such that \\(x+y=57\\), and \\(x^2-xy-y^2 = 1051\\). Find \\(x-y\\).<br><br>A) 13 &nbsp;&nbsp; B) 17 &nbsp;&nbsp; C) 19 &nbsp;&nbsp; D) 29 &nbsp;&nbsp; E) 31`,
-        
         `Let \\(ABCD\\) be a square of side length 6 inches. The square is creased along the diagonal \\(AC\\). A second straight crease is made from vertex \\(B\\) to side \\(AD\\), intersecting \\(AD\\) at a point \\(E\\) such that \\(AE = k\\) inches. The two creases intersect at a point \\(P\\) inside the square. Given that \\(P\\) divides the diagonal \\(AC\\) into two segments whose lengths are in a 1:4 ratio, determine \\(k\\). [See PDF for diagram]<br><br>A) 1/4 &nbsp;&nbsp; B) 2/3 &nbsp;&nbsp; C) 1 &nbsp;&nbsp; D) 4/3 &nbsp;&nbsp; E) 3/2`,
-        
         `In how many ways can a \\(3 \\times 12\\) grid be tiled with \\(1 \\times 3\\) tiles?<br><br>A) 29 &nbsp;&nbsp; B) 39 &nbsp;&nbsp; C) 60 &nbsp;&nbsp; D) 69 &nbsp;&nbsp; E) 70`,
-        
         `Find the sum of all integers \\(n\\) such that \\(\\dfrac{n^2-67}{n-10}\\) is an integer.<br><br>A) 24 &nbsp;&nbsp; B) 40 &nbsp;&nbsp; C) 80 &nbsp;&nbsp; D) 88 &nbsp;&nbsp; E) 104`,
-        
         `Temujin and Johann each take \\(a\\) and \\(b\\) cookies, respectively, from a batch of 100 such that \\(a,b \\ge 0\\) and \\(a+b \\le 100\\). If Temujin’s share is no more than three times Johann’s share, and Johann’s share is no more than four times Temujin’s share, let the total number of ordered pairs \\((a,b)\\) be \\(N\\). Compute the sum of the digits of \\(N\\).<br><br>A) 11 &nbsp;&nbsp; B) 12 &nbsp;&nbsp; C) 13 &nbsp;&nbsp; D) 16 &nbsp;&nbsp; E) 17`,
-        
         `If the sum \\(\\sum_{k=1}^{\\infty} \\frac{k}{k^4+4}\\) can be expressed as \\(\\dfrac{m}{n}\\), where \\(m\\) and \\(n\\) are relatively prime positive integers, determine \\(m+n\\).<br><br>A) 3 &nbsp;&nbsp; B) 4 &nbsp;&nbsp; C) 5 &nbsp;&nbsp; D) 8 &nbsp;&nbsp; E) 11`,
-        
         `Let \\(s(n)\\) denote the sum of the positive factors of \\(n\\). Compute the sum of digits of the smallest square-free positive integer \\(n\\) such that \\(0 < \\left|\\frac{s(n)}{n} - 2\\right| < 0.1\\).<br><br>A) 6 &nbsp;&nbsp; B) 7 &nbsp;&nbsp; C) 9 &nbsp;&nbsp; D) 10 &nbsp;&nbsp; E) 11`,
-        
         `A sequence of real numbers \\(a_1, a_2, \\dots\\) satisfies \\(a_n = \\dfrac{6a_{n-1}a_{n+1}}{8a_{n+1}+a_{n-1}}\\) and \\(a_0=a_1=1\\). The absolute value \\(|a_{100}|\\) can be expressed as \\(\\dfrac{m}{n}\\), where \\(m\\) and \\(n\\) are relatively prime positive integers. Compute the greatest positive integer \\(k\\) such that \\(2^k\\) divides \\(n\\).<br><br>A) 49 &nbsp;&nbsp; B) 50 &nbsp;&nbsp; C) 98 &nbsp;&nbsp; D) 99 &nbsp;&nbsp; E) 100`,
-        
         `Aiden has 7 keys of varied colors: 2 white, 2 blue, 3 red. If keys of the same color are indistinguishable, how many ways can Aiden order his keys on a key chain? Orderings obtained by rotating or flipping the chain are considered the same.<br><br>A) 10 &nbsp;&nbsp; B) 15 &nbsp;&nbsp; C) 18 &nbsp;&nbsp; D) 24 &nbsp;&nbsp; E) 36`,
-        
         `A sequence of nested geometric shapes alternates between circles and regular polygons. The outermost shape is a circle, followed by an inscribed square, an inscribed circle, an inscribed regular octagon, and so on, ending with an inscribed regular 1024-gon and a final innermost inscribed circle. The ratio of the radius of the innermost circle to the radius of the outermost circle can be uniquely expressed as \\(\\dfrac{\\sec(m^\\circ)}{n}\\), where \\(0 < m < 90\\) is a rational number and \\(n\\) is a positive integer. Compute the sum of the digits of the product \\(mn\\).<br><br>A) 5 &nbsp;&nbsp; B) 9 &nbsp;&nbsp; C) 12 &nbsp;&nbsp; D) 18 &nbsp;&nbsp; E) 27`,
-        
         `Let \\(s(n)\\) denote the sum of digits of \\(n\\). Let \\(S\\) be the sum of all integers \\(n < 67\\) such that \\(\\dfrac{\\text{lcm}(81, n^2)}{\\text{gcd}(81, s(n)^2)} - n^2 = 0\\). Determine the sum of the digits of \\(S\\).<br><br>A) 12 &nbsp;&nbsp; B) 15 &nbsp;&nbsp; C) 16 &nbsp;&nbsp; D) 17 &nbsp;&nbsp; E) 18`,
-        
         `Triangle \\(ABC\\) has median \\(BM\\) and \\(\\angle MBA = 60^\\circ\\). If \\(AB = 10\\), and \\(BC = 9\\), the sum of all possible areas of \\(ABC\\) can be expressed as \\(m\\sqrt{n}\\). Find \\(m+n\\).<br><br>A) 15 &nbsp;&nbsp; B) 23 &nbsp;&nbsp; C) 24 &nbsp;&nbsp; D) 28 &nbsp;&nbsp; E) 53`,
-        
-        `A random permutation \\([a_1, a_2, \\dots, a_n]\\) of the first \\(n\\) positive integers is chosen. Let \\(E\\) be the expected number of pairs of indices \\((i,j)\\) with \\(1 \\le i < j \\le n\\) such that \\(|a_i - a_{j}| = i-j\\). Find the least value of \\(n\\) such that \\(E > 26\\).<br><br>A) 14 &nbsp;&nbsp; B) 28 &nbsp;&nbsp; C) 40 &nbsp;&nbsp; D) 53 &nbsp;&nbsp; E) 54`
+        `A random permutation \\([a_1, a_2, \\dots, a_n]\\) of the first \\(n\\) positive integers is chosen. Let \\(E\\) be the expected number of pairs of indices \\((i, j)\\) with \\(1 \\le i < j \\le n\\) such that \\(|a_i - a_{j}| = i - j\\). Find the least value of \\(n\\) such that \\(E > 26\\).<br><br>A) 14 &nbsp;&nbsp; B) 28 &nbsp;&nbsp; C) 40 &nbsp;&nbsp; D) 53 &nbsp;&nbsp; E) 54`
     ];
+
+    // Check on page load if user already completed the test
+    document.addEventListener("DOMContentLoaded", function() {
+        if (localStorage.getItem("exam_submitted") === "true") {
+            document.body.innerHTML = `
+                <div style="text-align:center; margin-top:100px; font-family:sans-serif;">
+                    <h2>Submission Blocked</h2>
+                    <p>You have already submitted this exam once. Multiple attempts are not allowed.</p>
+                </div>`;
+        }
+    });
 
     async function beginExam() {
         const enteredName = document.getElementById('student-name').value.trim();
@@ -118,7 +105,6 @@
 
         if (!mySupabaseDb) return alert("Database not connected.");
 
-        // Record the exact start time
         currentAnswers['startTime'] = new Date().toLocaleTimeString();
         currentAnswers['submitTime'] = "In Progress";
 
@@ -170,19 +156,15 @@
         if (window.MathJax) MathJax.typesetPromise();
     }
 
-    // Custom function to allow DESELECTING radio buttons
     function handleRadioToggle(radioElement, qNum, value) {
         if (radioElement.getAttribute('data-was-checked') === 'true') {
-            // It was already checked, so clear it
             radioElement.checked = false;
             radioElement.setAttribute('data-was-checked', 'false');
             currentAnswers[qNum] = "Unanswered";
         } else {
-            // New selection: clear the 'was-checked' memory from all other options in this question
             const group = document.getElementsByName(radioElement.name);
             group.forEach(r => r.setAttribute('data-was-checked', 'false'));
             
-            // Mark this specific one as checked
             radioElement.setAttribute('data-was-checked', 'true');
             currentAnswers[qNum] = value;
         }
@@ -209,31 +191,47 @@
             syncToDatabase();
         });
     }
-
-    function startTimer() {
-        const interval = setInterval(() => {
-            let mins = Math.floor(timeInSeconds / 60);
-            let secs = timeInSeconds % 60;
-            document.getElementById('time-display').textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-            if (timeInSeconds <= 0) {
-                clearInterval(interval);
-                submitQuiz();
-            }
-            timeInSeconds--;
-        }, 1000);
-    }
+function startTimer() {
+    const interval = setInterval(async () => {
+        let mins = Math.floor(timeInSeconds / 60);
+        let secs = timeInSeconds % 60;
+        
+        let displayElement = document.getElementById('time-display');
+        if (displayElement) {
+            displayElement.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+        
+        if (timeInSeconds <= 0) {
+            clearInterval(interval);
+            
+            // 1. Instantly alert the user here BEFORE passing to the DB engine
+            alert("Time is up! Your exam is being automatically submitted.");
+            localStorage.setItem("exam_submitted", "true");
+            
+            // 2. Call your submit process
+            await submitQuiz(); 
+        }
+        timeInSeconds--;
+    }, 1000);
+}
 
     async function submitQuiz() {
-        if (!mySupabaseDb || !sessionID) return;
-        
-        // Record the exact submit time
-        currentAnswers['submitTime'] = new Date().toLocaleTimeString();
-        await syncToDatabase();
-
-        await mySupabaseDb.from('test_submissions').update({ status: 'Submitted' }).eq('id', sessionID);
-        alert("Your test has been successfully submitted!");
+    // If there's no DB connection or session, skip saving but STILL reload the screen
+    if (!mySupabaseDb || !sessionID) {
+        alert("Your test session ended. Returning to home screen.");
         location.reload();
+        return;
     }
+    
+    // Normal submission logic when DB is connected
+    currentAnswers['submitTime'] = new Date().toLocaleTimeString();
+    await syncToDatabase();
+
+    await mySupabaseDb.from('test_submissions').update({ status: 'Submitted' }).eq('id', sessionID);
+    alert("Your test has been successfully submitted!");
+    location.reload();
+}
 </script>
+
 </body>
 </html>
