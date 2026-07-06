@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AMC 12 Testing Portal</title>
+    <title>GMMC 12 Testing Portal</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -24,7 +24,9 @@
 
 <div class="container">
     <div id="registration-screen">
-        <h2>Welcome to the Mock AMC 12</h2>
+        <h2>Hi, this is the 2026 GMMC 12A (Gorilla mock math competitions trust):)</h2>
+        <p>Please exercise academic honesty and minimize tab movements.</p>
+        <p>Your score will not count if suspicious behavior is detected.</p>
         <p>Please enter your full name to begin the test.</p>
         <input type="text" id="student-name" placeholder="Your Name Here..." required>
         <button onclick="beginExam()">Start Test</button>
@@ -54,11 +56,10 @@
 
     let sessionID = null;
     let participantName = "";
-    let timeInSeconds = 75*60; // Set your test duration here (e.g., set to 5 for a quick test!)
+    let timeInSeconds = 75*60;
     let tabSwitchCount = 0;
     let currentAnswers = {};
 
-    // Put your full 25 questions back in here!
     const examQuestions = [
         `Compute \\((2^0+2^6)+(2+0^{26})\\).<br><br>A) 6 &nbsp;&nbsp; B) 7 &nbsp;&nbsp; C) 66 &nbsp;&nbsp; D) 67 &nbsp;&nbsp; E) 77`,
         `Mark has 10 colors of socks, and 4 of each color. Suppose he draws socks randomly out of his drawer; how many must he draw to guarantee at least two distinct pairs of matching socks (where a pair consists of two socks of the same color)?<br><br>A) 11 &nbsp;&nbsp; B) 12 &nbsp;&nbsp; C) 13 &nbsp;&nbsp; D) 21 &nbsp;&nbsp; E) 31`,
@@ -105,10 +106,56 @@
 
         if (!mySupabaseDb) return alert("Database not connected.");
 
-        currentAnswers['startTime'] = new Date().toLocaleTimeString();
-        currentAnswers['submitTime'] = "In Progress";
-
         try {
+            const { data: existingUsers, error: fetchError } = await mySupabaseDb
+                .from('test_submissions')
+                .select('*')
+                .eq('participant_name', participantName)
+                .order('id', { ascending: false }) 
+                .limit(1);
+
+            if (fetchError) throw fetchError;
+
+            if (existingUsers && existingUsers.length > 0) {
+                const existingUser = existingUsers[0];
+
+                if (existingUser.status === 'Submitted') {
+                    alert("Access Denied: You have already submitted this exam.");
+                    location.reload();
+                    return;
+                }
+
+                if (existingUser.status === 'Testing') {
+                    const startTimeStr = existingUser.answers.startTimeReal;
+                    
+                    if (startTimeStr) {
+                        const startTime = parseInt(startTimeStr, 10);
+                        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                        const maxDuration = 75 * 60; // 75 minutes in seconds
+
+                        if (elapsedSeconds >= maxDuration) {
+                            await mySupabaseDb.from('test_submissions').update({ status: 'Submitted' }).eq('id', existingUser.id);
+                            alert("Time has expired for this test session. It has been automatically submitted.");
+                            location.reload();
+                            return;
+                        } else {
+                            sessionID = existingUser.id;
+                            currentAnswers = existingUser.answers;
+                            timeInSeconds = maxDuration - elapsedSeconds; 
+                            
+                            alert("Resuming your active test session...");
+                            launchTestScreen();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // Brand new participant
+            currentAnswers['startTime'] = new Date().toLocaleTimeString();
+            currentAnswers['startTimeReal'] = Date.now().toString(); 
+            currentAnswers['submitTime'] = "In Progress";
+
             const { data, error } = await mySupabaseDb
                 .from('test_submissions')
                 .insert([{ participant_name: participantName, status: 'Testing', answers: currentAnswers }])
@@ -118,17 +165,22 @@
             if (!data || data.length === 0) throw new Error("No data returned");
 
             sessionID = data[0].id;
+            launchTestScreen();
 
-            document.getElementById('registration-screen').classList.add('hidden');
-            document.getElementById('test-screen').classList.remove('hidden');
-            document.getElementById('welcome-msg').textContent = `Participant: ${participantName}`;
-
-            buildTest();
-            startTimer();
-            setupTracking();
         } catch (err) {
             alert("Database Error: " + err.message);
         }
+    }
+
+    function launchTestScreen() {
+        document.getElementById('registration-screen').classList.add('hidden');
+        document.getElementById('test-screen').classList.remove('hidden');
+        document.getElementById('welcome-msg').textContent = `Participant: ${participantName}`;
+
+        buildTest();
+        startTimer();
+        setupTracking();
+	syncToDatabase();
     }
 
     function buildTest() {
@@ -180,57 +232,67 @@
     }
 
     function setupTracking() {
-        document.addEventListener('visibilitychange', () => {
+        document.addEventListener('visibilitychange', async () => {
             if (document.visibilityState === 'hidden') {
                 tabSwitchCount++;
-                syncToDatabase();
+                await syncToDatabase();
+            } else {
+                if (timeInSeconds <= 0) {
+                    alert("Time expired while you were away! Your exam is being automatically submitted.");
+                    localStorage.setItem("exam_submitted", "true");
+                    await submitQuiz();
+                }
             }
         });
-        window.addEventListener('blur', () => {
+
+        window.addEventListener('blur', async () => {
             tabSwitchCount++;
-            syncToDatabase();
+            await syncToDatabase();
+        });
+
+        window.addEventListener('focus', async () => {
+            if (timeInSeconds <= 0) {
+                alert("Time expired while you were away! Your exam is being automatically submitted.");
+                localStorage.setItem("exam_submitted", "true");
+                await submitQuiz();
+            }
         });
     }
-function startTimer() {
-    const interval = setInterval(async () => {
-        let mins = Math.floor(timeInSeconds / 60);
-        let secs = timeInSeconds % 60;
+
+    function startTimer() {
+        const interval = setInterval(async () => {
+            let mins = Math.floor(timeInSeconds / 60);
+            let secs = timeInSeconds % 60;
         
-        let displayElement = document.getElementById('time-display');
-        if (displayElement) {
-            displayElement.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-        }
+            let displayElement = document.getElementById('time-display');
+            if (displayElement) {
+                displayElement.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            }
         
-        if (timeInSeconds <= 0) {
-            clearInterval(interval);
-            
-            // 1. Instantly alert the user here BEFORE passing to the DB engine
-            alert("Time is up! Your exam is being automatically submitted.");
-            localStorage.setItem("exam_submitted", "true");
-            
-            // 2. Call your submit process
-            await submitQuiz(); 
-        }
-        timeInSeconds--;
-    }, 1000);
-}
+            if (timeInSeconds <= 0) {
+                clearInterval(interval);
+                alert("Time is up! Your exam is being automatically submitted.");
+                localStorage.setItem("exam_submitted", "true");
+                await submitQuiz(); 
+            }
+            timeInSeconds--;
+        }, 1000);
+    }
 
     async function submitQuiz() {
-    // If there's no DB connection or session, skip saving but STILL reload the screen
-    if (!mySupabaseDb || !sessionID) {
-        alert("Your test session ended. Returning to home screen.");
-        location.reload();
-        return;
-    }
-    
-    // Normal submission logic when DB is connected
-    currentAnswers['submitTime'] = new Date().toLocaleTimeString();
-    await syncToDatabase();
+        if (!mySupabaseDb || !sessionID) {
+            alert("Your test session ended. Returning to home screen.");
+            location.reload();
+            return;
+        }
+        
+        currentAnswers['submitTime'] = new Date().toLocaleTimeString();
+        await syncToDatabase();
 
-    await mySupabaseDb.from('test_submissions').update({ status: 'Submitted' }).eq('id', sessionID);
-    alert("Your test has been successfully submitted!");
-    location.reload();
-}
+        await mySupabaseDb.from('test_submissions').update({ status: 'Submitted' }).eq('id', sessionID);
+        alert("Your test has been successfully submitted!");
+        location.reload();
+    }
 </script>
 
 </body>
